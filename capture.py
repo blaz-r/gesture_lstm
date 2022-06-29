@@ -1,3 +1,4 @@
+import time
 from math import gcd
 
 import cv2
@@ -86,39 +87,59 @@ def create_pipeline():
     return pipeline
 
 
-def capture():
+def view():
     device = dai.Device()
     device.startPipeline(create_pipeline())
     img_q = device.getOutputQueue(name="cam_out", maxSize=1, blocking=False)
 
+    while True:
+        image = img_q.get().getCvFrame()
+        cv2.imshow("View", image)
+        key = cv2.waitKey(1)
+        if key == 27 or key == ord('q'):
+            return
+
+
+
+def capture(path, name):
+    device = dai.Device()
+    device.startPipeline(create_pipeline())
+    img_q = device.getOutputQueue(name="cam_out", maxSize=1, blocking=False)
+
+    image = img_q.get().getCvFrame()
+
     for cap in range(30):
 
-        image = img_q.get().getCvFrame()
-        cv2.putText(image, f"Starting collection in 3 seconds", (120,200), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5, (0, 120, 255), 4, cv2.LINE_AA)
-        cv2.imshow("Capture", image)
-        key = cv2.waitKey(3000)
-        if key == 27 or key == ord('q'):
-            break
-
-        for frame in range(30):
-            # 1152 x 648
-            # out = cv2.VideoWriter(f"gesture_videos/play/play_capture{cap}.mp4", cv2.VideoWriter_fourcc('m', 'p', '4', 'v'),
-            #                       30, (img_w, img_h))
-
+        last_time = time.time()
+        while time.time() - last_time < 3:
             image = img_q.get().getCvFrame()
 
-            # out.write(image)
+            cv2.putText(image, f"Starting collection in {int(4 - (time.time() - last_time))} seconds",
+                        (120, 200), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5, (0, 120, 255), 4, cv2.LINE_AA)
+            cv2.imshow("Capture", image)
+            key = cv2.waitKey(1)
+            if key == 27 or key == ord('q'):
+                return
+
+        # 1152 x 648
+        out = cv2.VideoWriter(f"{path}/{name}{cap}.mp4", cv2.VideoWriter_fourcc('m', 'p', '4', 'v'),
+                              30, (img_w, img_h))
+
+        for frame in range(30):
+            image = img_q.get().getCvFrame()
+
+            out.write(image)
 
             cv2.putText(image, f"Capturing video {cap}", (15, 12), cv2.FONT_HERSHEY_SIMPLEX,
                         0.5, (0, 0, 255), 1, cv2.LINE_AA)
             cv2.imshow("Capture", image)
 
-            key = cv2.waitKey(1)
+            key = cv2.waitKey(10)
             if key == 27 or key == ord('q'):
-                break
+                return
 
-            # out.release()
+        out.release()
 
     cv2.destroyAllWindows()
 
@@ -150,5 +171,6 @@ def read_test():
 
 
 if __name__ == "__main__":
-    capture()
+    # view()
+    capture("gesture_videos/play", "play_capture")
     # read_test()
