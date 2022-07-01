@@ -13,6 +13,7 @@ import cv2
 import os
 from pathlib import Path
 import re
+import time
 
 import depthai as dai
 from dai_utils import create_pipeline, find_isp_scale_params
@@ -164,9 +165,9 @@ def make_model():
     """
     model = Sequential()
     model.add(Input(shape=(30, 42), name="input"))
-    model.add(LSTM(64, return_sequences=True, activation='relu'))
-    model.add(LSTM(128, return_sequences=True, activation='relu'))
-    model.add(LSTM(64, return_sequences=False, activation='relu'))
+    model.add(LSTM(64, return_sequences=True, time_major=False, activation='relu'))
+    model.add(LSTM(128, return_sequences=True, time_major=False, activation='relu'))
+    model.add(LSTM(64, return_sequences=False, time_major=False, activation='relu'))
     model.add(Dense(64, activation='relu'))
     model.add(Dense(32, activation='relu'))
     model.add(Dense(3, activation='softmax', name="result"))
@@ -191,13 +192,16 @@ def train_lstm():
 
     model.summary()
 
-    model.save("gestures.h5")
-
     y_hat = model.predict(X_test)
     y_true = np.argmax(y_test, axis=1).tolist()
     y_hat = np.argmax(y_hat, axis=1).tolist()
 
-    print("AC on test data",accuracy_score(y_true, y_hat))
+    print("AC on test data", accuracy_score(y_true, y_hat))
+
+    MODEL_DIR = "gesture_recognition_lstm"
+    tf.saved_model.save(model, MODEL_DIR)
+
+    model.save("gestures.h5")
 
     return model
 
@@ -219,6 +223,20 @@ def test_model():
     y_hat = np.argmax(y_hat, axis=1).tolist()
 
     print(accuracy_score(y_true, y_hat))
+
+
+def test_on_landmarks():
+    data = np.load("G:\Faks\diploma\gesture_capture\gesture_landmarks\play\play_1.npy")
+    data = np.expand_dims(data, axis=0)
+
+    model = make_model()
+    model.load_weights("gestures.h5")
+
+    t0 = time.time()
+    res = model.predict(data)
+    t1 = time.time()
+
+    print(t1 - t0, res)
 
 
 def live_test():
@@ -361,4 +379,5 @@ if __name__ == '__main__':
     # live_mediapipe()
     # train_lstm()
     # test_model()
-    live_test()
+    test_on_landmarks()
+    # live_test()
