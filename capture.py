@@ -1,8 +1,16 @@
+import re
 import time
 import cv2
 import depthai as dai
-from dai_utils import create_pipeline, find_isp_scale_params
+import numpy as np
 
+from dai_utils import create_pipeline, find_isp_scale_params
+import mediapipe as mp
+from train_model import extract_landmarks
+
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
+mp_hands = mp.solutions.hands
 
 resolution = (1920, 1080)
 
@@ -40,14 +48,36 @@ def view():
             return
 
 
-def capture(path, name):
+def handle_mediapipe(image, hands):
+    # To improve performance, optionally mark the image as not writeable to
+    # pass by reference.
+    image.flags.writeable = False
+    results = hands.process(image)
+
+    # Draw the hand annotations on the image.
+    image.flags.writeable = True
+
+    if results.multi_hand_landmarks:
+        for hand_landmarks in results.multi_hand_landmarks:
+            mp_drawing.draw_landmarks(
+                image,
+                hand_landmarks,
+                mp_hands.HAND_CONNECTIONS,
+                mp_drawing_styles.get_default_hand_landmarks_style(),
+                mp_drawing_styles.get_default_hand_connections_style())
+
+    return results
+
+
+def capture(gesture_videos_path, gesture_landmarks_path, name):
     """
     Capture gesture videos.
     Each call captures 20 videos with 30 frames each.
     All are 30fps with 1152 x 648 resolution
 
-    :param path: path to gesture directory
-    :param name: filename of video
+    :param gesture_videos_path: path to gesture video directory
+    :param gesture_landmarks_path: path to gesture numpy landmarks directory
+    :param name: filename
     :return: None
     """
     device = dai.Device()
@@ -56,38 +86,59 @@ def capture(path, name):
 
     image = img_q.get().getCvFrame()
 
-    for cap in range(20):
+    with mp_hands.Hands(
+            max_num_hands=1,
+            model_complexity=0,
+            min_detection_confidence=0.1,
+            min_tracking_confidence=0.3) as hands:
+        for cap in range(20):
 
-        last_time = time.time()
-        while time.time() - last_time < 2:
-            image = img_q.get().getCvFrame()
+            last_time = time.time()
+            while time.time() - last_time < 2:
+                image = img_q.get().getCvFrame()
 
-            cv2.putText(image, f"Starting collection in {int(3 - (time.time() - last_time))} seconds",
-                        (120, 200), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.5, (0, 120, 255), 4, cv2.LINE_AA)
-            cv2.imshow("Capture", image)
-            key = cv2.waitKey(1)
-            if key == 27 or key == ord('q'):
-                return
+                cv2.putText(image, f"Starting collection in {int(3 - (time.time() - last_time))} seconds",
+                            (120, 200), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.5, (0, 120, 255), 4, cv2.LINE_AA)
 
-        # 1152 x 648
-        out = cv2.VideoWriter(f"{path}/{name}{cap}.mp4", cv2.VideoWriter_fourcc('m', 'p', '4', 'v'),
-                              30, (img_w, img_h))
+                handle_mediapipe(image, hands)
 
-        for frame in range(30):
-            image = img_q.get().getCvFrame()
+                cv2.imshow("Capture", image)
+                key = cv2.waitKey(1)
+                if key == 27 or key == ord('q'):
+                    return
 
-            out.write(image)
+            # 1152 x 648
+            out = cv2.VideoWriter(f"{gesture_videos_path}/{name}{cap}.mp4", cv2.VideoWriter_fourcc('m', 'p', '4', 'v'),
+                                  30, (img_w, img_h))
 
-            cv2.putText(image, f"Capturing video {cap}", (15, 12), cv2.FONT_HERSHEY_SIMPLEX,
-                        0.5, (0, 0, 255), 1, cv2.LINE_AA)
-            cv2.imshow("Capture", image)
+            # 30 frames with 42 landmarks
+            landmarks = np.zeros((30, 42))
 
-            key = cv2.waitKey(10)
-            if key == 27 or key == ord('q'):
-                return
+            frame_idx = 0
+            for frame in range(30):
+                image = img_q.get().getCvFrame()
+                out.write(image)
 
-        out.release()
+                cv2.putText(image, f"Capturing video {cap}", (15, 12), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.5, (0, 0, 255), 1, cv2.LINE_AA)
+
+                results = handle_mediapipe(image, hands)
+
+                cv2.imshow("Capture", image)
+
+                # insert scaled landmarks for current frame
+                landmarks[frame_idx, :] = extract_landmarks(results)
+                frame_idx += 1
+
+                key = cv2.waitKey(10)
+                if key == 27 or key == ord('q'):
+                    return
+
+            out.release()
+            # if while didn't exit due to no landmark detections
+            np_path = f"{gesture_landmarks_path}/{name}_{cap}"
+            np.save(np_path, landmarks)
 
     cv2.destroyAllWindows()
 
@@ -126,5 +177,5 @@ def read_test(path):
 
 if __name__ == "__main__":
     view()
-    capture("gesture_videos/pause", "pause_capture")
+    capture("gesture_videos/back", "gesture_landmarks/back", "back")
     # read_test("gesture_videos/play/play_capture1.mp4")
