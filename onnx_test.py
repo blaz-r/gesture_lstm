@@ -2,7 +2,7 @@ import numpy as np
 import onnx, onnxruntime
 import time
 
-data = np.load("G:\Faks\diploma\gesture_capture\gesture_landmarks\pause\pause_1.npy").astype(np.float32) / 10000
+data = np.load("G:\Faks\diploma\gesture_capture\gesture_landmarks\pause\pause_1.npy").astype(np.float32)
 data = np.expand_dims(data, axis=0)
 
 model = "gesture_recognition_lstm.onnx"

@@ -28,7 +28,7 @@ pad_h = (img_w - img_h) // 2
 frame_size = img_w
 
 
-def live_test_tf():
+def live_test_tf(gestures):
     """
     Test gesture recognition live
 
@@ -77,7 +77,7 @@ def live_test_tf():
                         mp_drawing_styles.get_default_hand_connections_style())
 
                 # extract and sacale landmarks
-                landmarks = extract_landmarks(results).astype(np.float32) / 10000
+                landmarks = extract_landmarks(results).astype(np.float32)
                 sequence.append(landmarks)
                 # keep last 30 frames
                 sequence = sequence[-30:]
@@ -114,7 +114,7 @@ def live_test_tf():
                 break
 
 
-def live_test_onnx():
+def live_test_onnx(gestures):
     """
     Test gesture recognition live
 
@@ -128,7 +128,6 @@ def live_test_onnx():
     input_name = session.get_inputs()[0].name
     output_name = session.get_outputs()[0].name
 
-    gestures = ["play", "pause", "idle"]
 
     device = dai.Device()
     device.startPipeline(create_pipeline())
@@ -167,7 +166,7 @@ def live_test_onnx():
                         mp_drawing_styles.get_default_hand_connections_style())
 
                 # extract and sacale landmarks
-                landmarks = extract_landmarks(results).astype(np.float32) / 10000
+                landmarks = extract_landmarks(results).astype(np.float32)
                 sequence.append(landmarks)
                 # keep last 30 frames
                 sequence = sequence[-30:]
@@ -182,7 +181,7 @@ def live_test_onnx():
                 print(t1 - t0, result)
 
                 # output if last 20 frames are all same prediction
-                if np.unique(predictions[-20:])[0] == np.argmax(result):
+                if np.unique(predictions[-30:])[0] == np.argmax(result):
                     if result[np.argmax(result)] > threshold:
 
                         if len(sentence) > 0:
@@ -204,7 +203,7 @@ def live_test_onnx():
                 break
 
 
-def live_test_openvino():
+def live_test_openvino(gestures):
     """
     Test gesture recognition live
 
@@ -216,8 +215,6 @@ def live_test_openvino():
     network = iecore.read_network(model="gesture_recognition_lstm.xml", weights="gesture_recognition_lstm.bin")
     exec_net = iecore.load_network(network=network, device_name="CPU")
     input_blob = next(iter(network.input_info))
-
-    gestures = ["play", "pause", "idle"]
 
     device = dai.Device()
     device.startPipeline(create_pipeline())
@@ -256,7 +253,7 @@ def live_test_openvino():
                         mp_drawing_styles.get_default_hand_connections_style())
 
                 # extract and sacale landmarks
-                landmarks = extract_landmarks(results).astype(np.float16) / 10000
+                landmarks = extract_landmarks(results).astype(np.float16)
                 sequence.append(landmarks)
                 # keep last 30 frames
                 sequence = sequence[-30:]
@@ -307,8 +304,8 @@ def live_mediapipe():
     with mp_hands.Hands(
             max_num_hands=1,
             model_complexity=0,
-            min_detection_confidence=0.2,
-            min_tracking_confidence=0.5) as hands:
+            min_detection_confidence=0.1,
+            min_tracking_confidence=0.3) as hands:
         while True:
 
             image = img_q.get().getCvFrame()
@@ -337,7 +334,8 @@ def live_mediapipe():
 
 
 if __name__ == '__main__':
+    gestures = ["play", "pause", "forward", "back", "idle"]
     # live_mediapipe()
-    # live_test_tf()
-    live_test_onnx()
-    # live_test_openvino()
+    # live_test_tf(gestures)
+    live_test_onnx(gestures)
+    # live_test_openvino(gestures)
