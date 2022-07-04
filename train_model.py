@@ -21,7 +21,6 @@ import time
 import depthai as dai
 from dai_utils import create_pipeline, find_isp_scale_params
 
-
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_hands = mp.solutions.hands
@@ -55,7 +54,7 @@ def extract_landmarks(results):
         landmarks[idx * 2] = landmark.x * img_w
         landmarks[idx * 2 + 1] = landmark.y * img_h
 
-    landmarks /= 5
+    landmarks /= frame_size
 
     return landmarks
 
@@ -74,7 +73,6 @@ def produce_landmarks(gesture_videos_path, gesture_landmarks_path, name):
             model_complexity=0,
             min_detection_confidence=0.2,
             min_tracking_confidence=0.5) as hands:
-
         for file_name in os.listdir(gesture_videos_path):
             file_path = f"{gesture_videos_path}/{file_name}"
             # open video file
@@ -130,18 +128,15 @@ def landmarks_read_test(directory_path):
         print("Successfully read")
 
 
-def prepare_data(path):
+def prepare_data(path, gestures, gestures_onehot_dict):
     """
     Prepare landmark data for training
 
     :param path: path to directory with subdirectories containing landmarks
+    :param gestures: list of gestures, in order which model predicts them
+    :param gestures_onehot_dict: dictionary mapping gesture to prediction output
     :return: sequences (X), results (y)
     """
-    gestures = ["play", "pause", "idle"]
-    gestures_onehot_dict = {"play": [1, 0, 0],
-                            "pause": [0, 1, 0],
-                            "idle": [0, 0, 1]}
-
     sequences = []
     results = []
     for gesture in gestures:
@@ -149,7 +144,7 @@ def prepare_data(path):
         result = gestures_onehot_dict[gesture]
         for file in os.listdir(gesture_path):
             file_path = f"{gesture_path}/{file}"
-            landmarks = np.load(file_path) / 10000
+            landmarks = np.load(file_path)
 
             sequences.append(landmarks)
             results.append(result)
@@ -160,7 +155,7 @@ def prepare_data(path):
     return sequences, results
 
 
-def make_model():
+def make_model(outputs=5):
     """
     Build model architecture
 
@@ -173,25 +168,31 @@ def make_model():
     model.add(LSTM(64, return_sequences=False, time_major=False, activation='relu'))
     model.add(Dense(64, activation='relu'))
     model.add(Dense(32, activation='relu'))
-    model.add(Dense(3, activation='softmax', name="result"))
+    model.add(Dense(outputs, activation='softmax', name="result"))
 
     return model
 
 
-def train_lstm():
+def train_lstm(gestures, gestures_onehot_dict):
     """
     Train model from saved landmarks
 
+    :param gestures: list of gestures, in order which model predicts them
+    :param gestures_onehot_dict: dictionary mapping gesture to prediction output
     :return:
     """
-    X, y = prepare_data("gesture_landmarks")
+
+    # train on CPU since it's faster for this case
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+    X, y = prepare_data("gesture_landmarks", gestures, gestures_onehot_dict)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-    model = make_model()
+    model = make_model(len(y[0]))
 
     model.compile(optimizer="Adam", loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
-    model.fit(X_train, y_train, epochs=200)
+    model.fit(X_train, y_train, epochs=400)
 
     model.summary()
 
@@ -229,7 +230,7 @@ def test_model():
 
 
 def test_on_landmarks():
-    data = np.load("G:\Faks\diploma\gesture_capture\gesture_landmarks\play\play_1.npy") / 10000
+    data = np.load("G:\Faks\diploma\gesture_capture\gesture_landmarks\play\play_1.npy")
     data = np.expand_dims(data, axis=0)
 
     model = make_model()
@@ -258,21 +259,31 @@ def check_weights():
     print(weights)
 
 
-def main():
-    name = "idle"
+def process_landmarks():
+    name = "forward"
     lm_path = f"gesture_landmarks/{name}"
     video_path = f"gesture_videos/{name}"
 
-    produce_landmarks(video_path, lm_path, name)
+    # produce_landmarks(video_path, lm_path, name)
     # landmarks_read_test(lm_path)
     # prepare_data("gesture_landmarks")
 
 
-if __name__ == '__main__':
-    # main()
-    # live_mediapipe()
-    # train_lstm()
+def main():
+    gestures = ["play", "pause", "forward", "back", "idle"]
+    gestures_onehot_dict = {"play": [1, 0, 0, 0, 0],
+                            "pause": [0, 1, 0, 0, 0],
+                            "forward": [0, 0, 1, 0, 0],
+                            "back": [0, 0, 0, 1, 0],
+                            "idle": [0, 0, 0, 0, 1]}
+
+    train_lstm(gestures, gestures_onehot_dict)
     # save_model()
     # check_weights()
     # test_model()
-    test_on_landmarks()
+    # test_on_landmarks()
+
+
+if __name__ == '__main__':
+    main()
+    # process_landmarks()
