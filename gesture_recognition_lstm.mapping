@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+<mapping>
+	<map>
+		<framework name="input" output_port_id="input" />
+		<IR name="input" output_port_id="0" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_2/zeros/Const:0" output_port_id="StatefulPartitionedCall/sequential/lstm_2/zeros/Const:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_2/zeros/Const:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm/Shape:0" output_port_id="StatefulPartitionedCall/sequential/lstm/Shape:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm/Shape:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm/Shape__120:0" output_port_id="StatefulPartitionedCall/sequential/lstm/Shape__120:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm/Shape__120:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="const_axes__150" output_port_id="const_axes__150" />
+		<IR name="const_axes__150" output_port_id="0" />
+	</map>
+	<map>
+		<framework name="const_ends__140" output_port_id="const_ends__140" />
+		<IR name="const_ends__140" output_port_id="0" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm/strided_slice:0" output_port_id="StatefulPartitionedCall/sequential/lstm/strided_slice:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm/strided_slice:0" output_port_id="4" />
+	</map>
+	<map>
+		<framework name="const_fold_opt__184" output_port_id="const_fold_opt__184" />
+		<IR name="const_fold_opt__184" output_port_id="0" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm/zeros_1/packed_Concat__130:0" output_port_id="StatefulPartitionedCall/sequential/lstm/zeros_1/packed_Concat__130:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm/zeros_1/packed_Concat__130:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm/zeros_1__131:0" output_port_id="StatefulPartitionedCall/sequential/lstm/zeros_1__131:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm/zeros_1__131:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm/zeros:0" output_port_id="StatefulPartitionedCall/sequential/lstm/zeros:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm/zeros:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="Unsqueeze__59:0" output_port_id="Unsqueeze__59:0" />
+		<IR name="Unsqueeze__59:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="Squeeze_2574" output_port_id="StatefulPartitionedCall/sequential/lstm/transpose_1:0" />
+		<IR name="Squeeze_2574" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_1/Shape:0" output_port_id="StatefulPartitionedCall/sequential/lstm_1/Shape:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_1/Shape:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_1/Shape__138:0" output_port_id="StatefulPartitionedCall/sequential/lstm_1/Shape__138:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_1/Shape__138:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_1/strided_slice:0" output_port_id="StatefulPartitionedCall/sequential/lstm_1/strided_slice:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_1/strided_slice:0" output_port_id="4" />
+	</map>
+	<map>
+		<framework name="const_fold_opt__185" output_port_id="const_fold_opt__185" />
+		<IR name="const_fold_opt__185" output_port_id="0" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_1/zeros/packed_Concat__154:0" output_port_id="StatefulPartitionedCall/sequential/lstm_1/zeros/packed_Concat__154:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_1/zeros/packed_Concat__154:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_1/zeros_1__149:0" output_port_id="StatefulPartitionedCall/sequential/lstm_1/zeros_1__149:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_1/zeros_1__149:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_1/zeros:0" output_port_id="StatefulPartitionedCall/sequential/lstm_1/zeros:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_1/zeros:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="Unsqueeze__80:0" output_port_id="Unsqueeze__80:0" />
+		<IR name="Unsqueeze__80:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="Squeeze_2581" output_port_id="StatefulPartitionedCall/sequential/lstm_1/transpose_1:0" />
+		<IR name="Squeeze_2581" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_2/Shape:0" output_port_id="StatefulPartitionedCall/sequential/lstm_2/Shape:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_2/Shape:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_2/Shape__156:0" output_port_id="StatefulPartitionedCall/sequential/lstm_2/Shape__156:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_2/Shape__156:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_2/strided_slice:0" output_port_id="StatefulPartitionedCall/sequential/lstm_2/strided_slice:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_2/strided_slice:0" output_port_id="4" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_2/zeros_1/packed_Concat__166:0" output_port_id="StatefulPartitionedCall/sequential/lstm_2/zeros_1/packed_Concat__166:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_2/zeros_1/packed_Concat__166:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_2/zeros_1__167:0" output_port_id="StatefulPartitionedCall/sequential/lstm_2/zeros_1__167:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_2/zeros_1__167:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_2/zeros_1:0" output_port_id="StatefulPartitionedCall/sequential/lstm_2/zeros_1:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_2/zeros_1:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="Unsqueeze__99:0" output_port_id="Unsqueeze__99:0" />
+		<IR name="Unsqueeze__99:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="Squeeze__111:0" output_port_id="Squeeze__111:0" />
+		<IR name="Squeeze__111:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="const_starts__174" output_port_id="const_starts__174" />
+		<IR name="const_starts__174" output_port_id="0" />
+	</map>
+	<map>
+		<framework name="const_ends__175" output_port_id="const_ends__175" />
+		<IR name="const_ends__175" output_port_id="0" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_2/strided_slice_3:0" output_port_id="StatefulPartitionedCall/sequential/lstm_2/strided_slice_3:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_2/strided_slice_3:0" output_port_id="4" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/lstm_2/strided_slice_3__177:0" output_port_id="StatefulPartitionedCall/sequential/lstm_2/strided_slice_3__177:0" />
+		<IR name="StatefulPartitionedCall/sequential/lstm_2/strided_slice_3__177:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/dense/MatMul:0" output_port_id="StatefulPartitionedCall/sequential/dense/MatMul:0" />
+		<IR name="StatefulPartitionedCall/sequential/dense/MatMul:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/dense/BiasAdd:0" output_port_id="StatefulPartitionedCall/sequential/dense/BiasAdd:0" />
+		<IR name="StatefulPartitionedCall/sequential/dense/BiasAdd:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/dense/Relu:0" output_port_id="StatefulPartitionedCall/sequential/dense/Relu:0" />
+		<IR name="StatefulPartitionedCall/sequential/dense/Relu:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/dense_1/MatMul:0" output_port_id="StatefulPartitionedCall/sequential/dense_1/MatMul:0" />
+		<IR name="StatefulPartitionedCall/sequential/dense_1/MatMul:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/dense_1/BiasAdd:0" output_port_id="StatefulPartitionedCall/sequential/dense_1/BiasAdd:0" />
+		<IR name="StatefulPartitionedCall/sequential/dense_1/BiasAdd:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/dense_1/Relu:0" output_port_id="StatefulPartitionedCall/sequential/dense_1/Relu:0" />
+		<IR name="StatefulPartitionedCall/sequential/dense_1/Relu:0" output_port_id="1" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/result/MatMul:0" output_port_id="StatefulPartitionedCall/sequential/result/MatMul:0" />
+		<IR name="StatefulPartitionedCall/sequential/result/MatMul:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="StatefulPartitionedCall/sequential/result/BiasAdd:0" output_port_id="StatefulPartitionedCall/sequential/result/BiasAdd:0" />
+		<IR name="StatefulPartitionedCall/sequential/result/BiasAdd:0" output_port_id="2" />
+	</map>
+	<map>
+		<framework name="result" output_port_id="result" />
+		<IR name="result" output_port_id="1" />
+	</map>
+</mapping>
