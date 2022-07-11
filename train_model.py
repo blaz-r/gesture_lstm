@@ -192,7 +192,7 @@ def train_lstm(gestures, gestures_onehot_dict):
 
     model.compile(optimizer="Adam", loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
-    model.fit(X_train, y_train, epochs=400)
+    model.fit(X_train, y_train, epochs=200)
 
     model.summary()
 
@@ -270,12 +270,16 @@ def process_landmarks():
 
 
 def main():
-    gestures = ["play", "pause", "forward", "back", "idle"]
-    gestures_onehot_dict = {"play": [1, 0, 0, 0, 0],
-                            "pause": [0, 1, 0, 0, 0],
-                            "forward": [0, 0, 1, 0, 0],
-                            "back": [0, 0, 0, 1, 0],
-                            "idle": [0, 0, 0, 0, 1]}
+    gestures = ["play", "pause", "forward", "back", "idle", "vol"]
+
+    gestures_onehot_dict = {name: [1 if gestures.index(name) == i else 0 for i in range(len(gestures))]
+                            for name in gestures}
+
+    # gestures_onehot_dict = {"play": [1, 0, 0, 0, 0],
+    #                         "pause": [0, 1, 0, 0, 0],
+    #                         "forward": [0, 0, 1, 0, 0],
+    #                         "back": [0, 0, 0, 1, 0],
+    #                         "idle": [0, 0, 0, 0, 1]}
 
     train_lstm(gestures, gestures_onehot_dict)
     # save_model()
