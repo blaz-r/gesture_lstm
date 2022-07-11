@@ -69,7 +69,7 @@ def handle_mediapipe(image, hands):
     return results
 
 
-def capture(gesture_videos_path, gesture_landmarks_path, name):
+def capture(gesture_videos_path, gesture_landmarks_path, name, capture_num=20):
     """
     Capture gesture videos.
     Each call captures 20 videos with 30 frames each.
@@ -78,6 +78,7 @@ def capture(gesture_videos_path, gesture_landmarks_path, name):
     :param gesture_videos_path: path to gesture video directory
     :param gesture_landmarks_path: path to gesture numpy landmarks directory
     :param name: filename
+    :param capture_num: number of videos to be captured
     :return: None
     """
     device = dai.Device()
@@ -89,9 +90,9 @@ def capture(gesture_videos_path, gesture_landmarks_path, name):
     with mp_hands.Hands(
             max_num_hands=1,
             model_complexity=0,
-            min_detection_confidence=0.1,
+            min_detection_confidence=0.05,
             min_tracking_confidence=0.3) as hands:
-        for cap in range(20):
+        for cap in range(capture_num):
 
             last_time = time.time()
             while time.time() - last_time < 2:
@@ -101,7 +102,10 @@ def capture(gesture_videos_path, gesture_landmarks_path, name):
                             (120, 200), cv2.FONT_HERSHEY_SIMPLEX,
                             0.5, (0, 120, 255), 4, cv2.LINE_AA)
 
-                handle_mediapipe(image, hands)
+                results = handle_mediapipe(image, hands)
+                while not results.multi_hand_landmarks:
+                    image = img_q.get().getCvFrame()
+                    results = handle_mediapipe(image, hands)
 
                 cv2.imshow("Capture", image)
                 key = cv2.waitKey(1)
@@ -109,7 +113,7 @@ def capture(gesture_videos_path, gesture_landmarks_path, name):
                     return
 
             # 1152 x 648
-            out = cv2.VideoWriter(f"{gesture_videos_path}/{name}{cap}.mp4", cv2.VideoWriter_fourcc('m', 'p', '4', 'v'),
+            out = cv2.VideoWriter(f"{gesture_videos_path}/{name}_{cap}.mp4", cv2.VideoWriter_fourcc('m', 'p', '4', 'v'),
                                   30, (img_w, img_h))
 
             # 30 frames with 42 landmarks
@@ -124,6 +128,9 @@ def capture(gesture_videos_path, gesture_landmarks_path, name):
                             0.5, (0, 0, 255), 1, cv2.LINE_AA)
 
                 results = handle_mediapipe(image, hands)
+                while not results.multi_hand_landmarks:
+                    image = img_q.get().getCvFrame()
+                    results = handle_mediapipe(image, hands)
 
                 cv2.imshow("Capture", image)
 
@@ -177,5 +184,9 @@ def read_test(path):
 
 if __name__ == "__main__":
     view()
-    capture("gesture_videos/back", "gesture_landmarks/back", "back")
+    name = "idle"
+    lm_path = f"gesture_landmarks/{name}"
+    video_path = f"gesture_videos/{name}"
+    filename = f"{name}_1"
+    capture(video_path, lm_path, filename, capture_num=40)
     # read_test("gesture_videos/play/play_capture1.mp4")
