@@ -93,6 +93,7 @@ def live_test(gestures, model):
 
         sequence = []
         predictions = []
+        pred_probs = []
         threshold = 0.5
         sentence = []
 
@@ -103,13 +104,13 @@ def live_test(gestures, model):
             # To improve performance, optionally mark the image as not writeable to
             # pass by reference.
             image.flags.writeable = False
-            results = hands.process(image)
+            hand_result = hands.process(image)
 
             # Draw the hand annotations on the image.
             image.flags.writeable = True
 
-            if results.multi_hand_landmarks:
-                for hand_landmarks in results.multi_hand_landmarks:
+            if hand_result.multi_hand_landmarks:
+                for hand_landmarks in hand_result.multi_hand_landmarks:
                     mp_drawing.draw_landmarks(
                         image,
                         hand_landmarks,
@@ -118,7 +119,7 @@ def live_test(gestures, model):
                         mp_drawing_styles.get_default_hand_connections_style())
 
                 # extract and sacale landmarks
-                landmarks = extract_landmarks(results).astype(np.float32)
+                landmarks = extract_landmarks(hand_result).astype(np.float32)
                 sequence.append(landmarks)
                 # keep last 30 frames
                 sequence = sequence[-30:]
@@ -128,20 +129,23 @@ def live_test(gestures, model):
                 t0 = time.time()
                 result = model.predict(np.expand_dims(sequence, axis=0))
                 t1 = time.time()
-                predictions.append(np.argmax(result))
 
-                print(t1 - t0, result)
+                pred_index = np.argmax(result)
+
+                predictions.append(pred_index)
+                pred_probs.append(result[pred_index])
+
+                print(round(t1 - t0, 4), [round(prob, 3) for prob in result])
 
                 # output if last 10 frames are all same prediction
                 unique = np.unique(predictions[-10:])
-                if len(unique) == 1 and unique[0] == np.argmax(result):
-                    if result[np.argmax(result)] > threshold:
-
+                if len(unique) == 1 and unique[0] == pred_index:
+                    if np.all(prob > threshold for prob in pred_probs[-10:]):
                         if len(sentence) > 0:
-                            if gestures[np.argmax(result)] != sentence[-1]:
-                                sentence.append(gestures[np.argmax(result)])
+                            if gestures[pred_index] != sentence[-1]:
+                                sentence.append(gestures[pred_index])
                         else:
-                            sentence.append(gestures[np.argmax(result)])
+                            sentence.append(gestures[pred_index])
 
                 if len(sentence) > 5:
                     sentence = sentence[-5:]
@@ -199,7 +203,8 @@ def live_mediapipe():
 
 
 if __name__ == '__main__':
-    gestures = ["play", "pause", "forward", "back", "idle"]
+    # gestures = ["play", "pause", "forward", "back", "idle"]
+    gestures = ["play", "pause", "forward", "back", "idle", "vol"]
     # live_mediapipe()
     # live_test(gestures, TfModel())
     # live_test(gestures, OpenVinoModel())
