@@ -163,9 +163,8 @@ def make_model(outputs=5):
     """
     model = Sequential()
     model.add(Input(shape=(30, 42), name="input"))
-    model.add(LSTM(64, return_sequences=True, time_major=False, activation='relu'))
-    model.add(LSTM(128, return_sequences=True, time_major=False, activation='relu'))
-    model.add(LSTM(64, return_sequences=False, time_major=False, activation='relu'))
+    model.add(LSTM(128, return_sequences=True, activation='relu'))
+    model.add(LSTM(64, return_sequences=False, activation='relu'))
     model.add(Dense(64, activation='relu'))
     model.add(Dense(32, activation='relu'))
     model.add(Dense(outputs, activation='softmax', name="result"))
@@ -186,7 +185,7 @@ def train_lstm(gestures, gestures_onehot_dict):
     os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
     X, y = prepare_data("gesture_landmarks", gestures, gestures_onehot_dict)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
     model = make_model(len(y[0]))
 
