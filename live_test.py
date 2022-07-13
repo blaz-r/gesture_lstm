@@ -6,6 +6,8 @@ import numpy as np
 import mediapipe as mp
 import cv2
 
+import pyautogui
+
 from train_model import extract_landmarks, make_model
 import time
 
@@ -75,6 +77,38 @@ class OpenVinoModel(Model):
         return self.exec_net.infer(inputs={self.input_blob: np.expand_dims(sequence, axis=0)})["result"][0]
 
 
+def gesture_to_command(gesture, prev_gesture, landmarks):
+    """
+    Convert gesture string to actual command string
+
+    :param gesture: gesture string
+    :param prev_gesture: previous gesture
+    :param landmarks: sequence of landmarks
+    :return: command string or None if idle or same gesture
+    """
+    if gesture == prev_gesture:
+        return None
+
+    if gesture == "play":
+        return "playpause"
+    elif gesture == "pause":
+        return "playpause"
+    elif gesture == "back":
+        return "prevtrack"
+    elif gesture == "forward":
+        return "nexttrack"
+    elif gesture == "vol":
+        # * 2 cuz we have 2 coords and + 1 as we want y coord, index finger is on index 8
+        index_finger_pos = landmarks[8 * 2 + 1]
+
+        if index_finger_pos < (648 / 1152) * 0.5:
+            return "volumeup"
+        else:
+            return "volumedown"
+    else:
+        return None
+
+
 def live_test(gestures, model):
     """
     Test gesture recognition live
@@ -96,6 +130,8 @@ def live_test(gestures, model):
         pred_probs = []
         threshold = 0.5
         sentence = []
+
+        prev_gesture = ""
 
         while True:
 
@@ -139,16 +175,27 @@ def live_test(gestures, model):
 
                 # output if last 10 frames are all same prediction
                 unique = np.unique(predictions[-10:])
+
+                current_gesture = "idle"
+
                 if len(unique) == 1 and unique[0] == pred_index:
                     if np.all(prob > threshold for prob in pred_probs[-10:]):
                         if len(sentence) > 0:
                             if gestures[pred_index] != sentence[-1]:
                                 sentence.append(gestures[pred_index])
+                                current_gesture = gestures[pred_index]
                         else:
                             sentence.append(gestures[pred_index])
+                            current_gesture = gestures[pred_index]
 
                 if len(sentence) > 5:
                     sentence = sentence[-5:]
+
+                command = gesture_to_command(current_gesture, prev_gesture, landmarks)
+                if command:
+                    pyautogui.press(command)
+
+                prev_gesture = current_gesture
 
             cv2.rectangle(image, (0, 0), (640, 40), (245, 117, 16), -1)
             cv2.putText(image, ' '.join(sentence), (3, 30),
