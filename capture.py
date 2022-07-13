@@ -48,6 +48,33 @@ def view():
             return
 
 
+def cap_video():
+    """
+        View video directly from camera
+
+        :return: None
+        """
+
+    # create device with pipeline, with same params as final project
+    device = dai.Device()
+    device.startPipeline(create_pipeline())
+    img_q = device.getOutputQueue(name="cam_out", maxSize=1, blocking=False)
+
+    # 1152 x 648
+    out = cv2.VideoWriter(f"geste_cap.mp4", cv2.VideoWriter_fourcc('m', 'p', '4', 'v'),
+                          30, (img_w, img_h))
+
+    # capture and display video
+    while True:
+        image = img_q.get().getCvFrame()
+        out.write(image)
+        cv2.imshow("View", image)
+        key = cv2.waitKey(1)
+        if key == 27 or key == ord('q'):
+            out.release()
+            return
+
+
 def handle_mediapipe(image, hands):
     # To improve performance, optionally mark the image as not writeable to
     # pass by reference.
@@ -184,9 +211,10 @@ def read_test(path):
 
 if __name__ == "__main__":
     view()
-    name = "idle"
-    lm_path = f"gesture_landmarks/{name}"
-    video_path = f"gesture_videos/{name}"
-    filename = f"{name}_1"
-    capture(video_path, lm_path, filename, capture_num=40)
+    cap_video()
+    # name = "idle"
+    # lm_path = f"gesture_landmarks/{name}"
+    # video_path = f"gesture_videos/{name}"
+    # filename = f"{name}_1"
+    # capture(video_path, lm_path, filename, capture_num=40)
     # read_test("gesture_videos/play/play_capture1.mp4")
