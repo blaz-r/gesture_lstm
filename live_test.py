@@ -1,3 +1,5 @@
+import os
+
 import depthai as dai
 import onnxruntime
 from openvino.inference_engine import IECore
@@ -113,7 +115,9 @@ def live_test(gestures, model):
     """
     Test gesture recognition live
 
-    :return:
+    :param gestures: list of gestures
+    :param model: model used for recognition
+    :return: None
     """
     device = dai.Device()
     device.startPipeline(create_pipeline())
@@ -180,13 +184,13 @@ def live_test(gestures, model):
 
                 if len(unique) == 1 and unique[0] == pred_index:
                     if np.all(prob > threshold for prob in pred_probs[-10:]):
-                        if len(sentence) > 0:
-                            if gestures[pred_index] != sentence[-1]:
-                                sentence.append(gestures[pred_index])
-                                current_gesture = gestures[pred_index]
-                        else:
-                            sentence.append(gestures[pred_index])
-                            current_gesture = gestures[pred_index]
+                        current_gesture = gestures[pred_index]
+
+                if len(sentence) > 0:
+                    if current_gesture != sentence[-1]:
+                        sentence.append(current_gesture)
+                else:
+                    sentence.append(current_gesture)
 
                 if len(sentence) > 5:
                     sentence = sentence[-5:]
@@ -249,10 +253,71 @@ def live_mediapipe():
                 break
 
 
+def long_test(gestures, model):
+    """
+    Test system on saved long test sequence
+
+    :param gestures: list of gestures
+    :param model: model used for recognition
+    :return: None
+    """
+    path = "test_data/long_test/landmarks"
+
+    sequence = []
+    predictions = []
+    pred_probs = []
+    threshold = 0.5
+    sentence = []
+
+    prev_gesture = ""
+
+    for idx, file in enumerate(os.listdir(path)):
+        file_path = f"{path}/{file}"
+        landmarks = np.load(file_path)
+        landmarks = landmarks.astype(np.float32)
+
+        sequence.append(landmarks)
+        # keep last 30 frames
+        sequence = sequence[-30:]
+
+        if len(sequence) == 30:
+            # predict with lstm
+            t0 = time.time()
+            result = model.predict(np.expand_dims(sequence, axis=0))
+            t1 = time.time()
+
+            pred_index = np.argmax(result)
+
+            predictions.append(pred_index)
+            pred_probs.append(result[pred_index])
+
+            print(round(t1 - t0, 4), [round(prob, 3) for prob in result])
+
+            # output if last 10 frames are all same prediction
+            unique = np.unique(predictions[-10:])
+
+            current_gesture = "idle"
+
+            if len(unique) == 1 and unique[0] == pred_index:
+                if np.all(prob > threshold for prob in pred_probs[-10:]):
+                    current_gesture = gestures[pred_index]
+
+            if len(sentence) > 0:
+                if current_gesture != sentence[-1]:
+                    sentence.append(current_gesture)
+            else:
+                sentence.append(current_gesture)
+
+            prev_gesture = current_gesture
+
+    print(sentence)
+
+
 if __name__ == '__main__':
     # gestures = ["play", "pause", "forward", "back", "idle"]
     gestures = ["play", "pause", "forward", "back", "idle", "vol"]
     # live_mediapipe()
     # live_test(gestures, TfModel())
     # live_test(gestures, OpenVinoModel())
-    live_test(gestures, OnnxModel())
+    # live_test(gestures, OnnxModel())
+    long_test(gestures, OnnxModel())
