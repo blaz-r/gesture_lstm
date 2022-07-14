@@ -50,10 +50,10 @@ def view():
 
 def cap_video():
     """
-        View video directly from camera
+    View video directly from camera
 
-        :return: None
-        """
+    :return: None
+    """
 
     # create device with pipeline, with same params as final project
     device = dai.Device()
@@ -73,6 +73,59 @@ def cap_video():
         if key == 27 or key == ord('q'):
             out.release()
             return
+
+
+def capture_test():
+    """
+    Capture video and landmarks for a longer sequence of gestures used for testing
+
+    :return: None
+    """
+    # create device with pipeline, with same params as final project
+    device = dai.Device()
+    device.startPipeline(create_pipeline())
+    img_q = device.getOutputQueue(name="cam_out", maxSize=1, blocking=False)
+
+    image = img_q.get().getCvFrame()
+
+    # 1152 x 648
+    out = cv2.VideoWriter("test_data/long_test/video/test_sequence.mp4", cv2.VideoWriter_fourcc('m', 'p', '4', 'v'),
+                          30, (img_w, img_h))
+
+    with mp_hands.Hands(
+            max_num_hands=1,
+            model_complexity=0,
+            min_detection_confidence=0.05,
+            min_tracking_confidence=0.3) as hands:
+
+        count = 0
+
+        results = handle_mediapipe(image, hands)
+        while not results.multi_hand_landmarks:
+            image = img_q.get().getCvFrame()
+            results = handle_mediapipe(image, hands)
+
+        # capture and display video
+        while True:
+            image = img_q.get().getCvFrame()
+            out.write(image)
+
+            results = handle_mediapipe(image, hands)
+
+            landmarks = extract_landmarks(results)
+
+            np_path = f"test_data/long_test/landmarks/test_sequence_lm_{count:04}"
+            np.save(np_path, landmarks)
+
+            count += 1
+
+            cv2.imshow("Test capture", image)
+            key = cv2.waitKey(1)
+            if key == 27 or key == ord('q'):
+                out.release()
+                return
+
+    out.release()
 
 
 def handle_mediapipe(image, hands):
@@ -211,7 +264,8 @@ def read_test(path):
 
 if __name__ == "__main__":
     view()
-    cap_video()
+    # cap_video()
+    capture_test()
     # name = "idle"
     # lm_path = f"gesture_landmarks/{name}"
     # video_path = f"gesture_videos/{name}"
