@@ -265,10 +265,10 @@ def read_test(path):
 if __name__ == "__main__":
     view()
     # cap_video()
-    capture_test()
-    # name = "idle"
-    # lm_path = f"gesture_landmarks/{name}"
-    # video_path = f"gesture_videos/{name}"
-    # filename = f"{name}_1"
-    # capture(video_path, lm_path, filename, capture_num=40)
+    # capture_test()
+    name = "vol"
+    lm_path = f"test_data/test/gesture_landmarks/{name}"
+    video_path = f"test_data/test/gesture_videos/{name}"
+    filename = f"{name}_1"
+    capture(video_path, lm_path, filename, capture_num=20)
     # read_test("gesture_videos/play/play_capture1.mp4")

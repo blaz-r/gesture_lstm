@@ -7,7 +7,8 @@ from tensorflow.python.tools import freeze_graph
 from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
 
 import numpy as np
 import mediapipe as mp
@@ -155,7 +156,7 @@ def prepare_data(path, gestures, gestures_onehot_dict):
     return sequences, results
 
 
-def make_model(outputs=5):
+def make_model(outputs=6):
     """
     Build model architecture
 
@@ -209,17 +210,18 @@ def train_lstm(gestures, gestures_onehot_dict):
     return model
 
 
-def test_model():
+def test_model(path, gestures, gestures_onehot_dict):
     """
-    Test model weight loading
+    :param path: path to directory with subdirectories containing landmarks
+    :param gestures: list of gestures, in order which model predicts them
+    :param gestures_onehot_dict: dictionary mapping gesture to prediction output
 
     :return:
     """
-    X, y = prepare_data("gesture_landmarks")
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    X_test, y_test = prepare_data(path, gestures, gestures_onehot_dict)
 
-    model = make_model()
-    model.load_weights("gestures.h5")
+    model = make_model(6)
+    model.load_weights("gestures_2people_95.h5")
 
     y_hat = model.predict(X_test)
     y_true = np.argmax(y_test, axis=1).tolist()
@@ -227,17 +229,27 @@ def test_model():
 
     print(accuracy_score(y_true, y_hat))
 
+    y_true_labels = [gestures[i] for i in y_true]
+    y_hat_labels = [gestures[i] for i in y_hat]
+
+    cm = confusion_matrix(y_true_labels, y_hat_labels, labels=gestures)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=gestures)
+    disp.plot()
+    plt.show()
+
 
 def test_on_landmarks():
-    data = np.load("G:\Faks\diploma\gesture_capture\gesture_landmarks\play\play_1.npy")
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+    data = np.load("G:\Faks\diploma\gesture_capture\gesture_landmarks\pause\pause_0_0.npy")
     data = np.expand_dims(data, axis=0)
 
-    model = make_model()
-    model.load_weights("gestures.h5")
+    model = make_model(6)
+    model.load_weights("gestures_2people_95.h5")
 
-    t0 = time.time()
+    t0 = time.time_ns()
     res = model.predict(data)
-    t1 = time.time()
+    t1 = time.time_ns()
 
     print(t1 - t0, res)
 
@@ -280,10 +292,10 @@ def main():
     #                         "back": [0, 0, 0, 1, 0],
     #                         "idle": [0, 0, 0, 0, 1]}
 
-    train_lstm(gestures, gestures_onehot_dict)
+    # train_lstm(gestures, gestures_onehot_dict)
     # save_model()
     # check_weights()
-    # test_model()
+    test_model("test_data/test/gesture_landmarks", gestures, gestures_onehot_dict)
     # test_on_landmarks()
 
 

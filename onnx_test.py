@@ -2,7 +2,7 @@ import numpy as np
 import onnx, onnxruntime
 import time
 
-data = np.load("G:\Faks\diploma\gesture_capture\gesture_landmarks\pause\pause_1.npy").astype(np.float32)
+data = np.load("G:\Faks\diploma\gesture_capture\gesture_landmarks\pause\pause_0_0.npy").astype(np.float32)
 data = np.expand_dims(data, axis=0)
 
 model = "gesture_recognition_lstm.onnx"
@@ -15,7 +15,7 @@ output_name = session.get_outputs()[0].name
 print(input_name)
 print(output_name)
 
-t0 = time.time()
+t0 = time.time_ns()
 result = session.run([output_name], {input_name: data})
-t1 = time.time()
+t1 = time.time_ns()
 print(t1 - t0, result)
