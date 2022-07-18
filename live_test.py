@@ -111,12 +111,14 @@ def gesture_to_command(gesture, prev_gesture, landmarks):
         return None
 
 
-def live_test(gestures, model):
+def live_test(gestures, model, unique_limit=15, threshold=0.5):
     """
     Test gesture recognition live
 
     :param gestures: list of gestures
     :param model: model used for recognition
+    :param unique_limit: number of detections that need to be all same for it to count as a gesture
+    :param threshold: threshold for probability that gesture was really detected
     :return: None
     """
     device = dai.Device()
@@ -132,7 +134,6 @@ def live_test(gestures, model):
         sequence = []
         predictions = []
         pred_probs = []
-        threshold = 0.5
         sentence = []
 
         prev_gesture = ""
@@ -178,12 +179,12 @@ def live_test(gestures, model):
                 print(round(t1 - t0, 4), [round(prob, 3) for prob in result])
 
                 # output if last 10 frames are all same prediction
-                unique = np.unique(predictions[-10:])
+                unique = np.unique(predictions[-unique_limit:])
 
                 current_gesture = "idle"
 
                 if len(unique) == 1 and unique[0] == pred_index:
-                    if np.all(prob > threshold for prob in pred_probs[-10:]):
+                    if np.all(prob > threshold for prob in pred_probs[-unique_limit:]):
                         current_gesture = gestures[pred_index]
 
                 if len(sentence) > 0:
@@ -253,12 +254,14 @@ def live_mediapipe():
                 break
 
 
-def long_test(gestures, model):
+def long_test(gestures, model, unique_limit=15, threshold=0.5):
     """
     Test system on saved long test sequence
 
     :param gestures: list of gestures
     :param model: model used for recognition
+    :param unique_limit: number of detections that need to be all same for it to count as a gesture
+    :param threshold: threshold for probability that gesture was really detected
     :return: None
     """
     path = "test_data/long_test/landmarks"
@@ -266,7 +269,6 @@ def long_test(gestures, model):
     sequence = []
     predictions = []
     pred_probs = []
-    threshold = 0.5
     sentence = []
 
     prev_gesture = ""
@@ -282,24 +284,20 @@ def long_test(gestures, model):
 
         if len(sequence) == 30:
             # predict with lstm
-            t0 = time.time()
             result = model.predict(np.expand_dims(sequence, axis=0))
-            t1 = time.time()
 
             pred_index = np.argmax(result)
 
             predictions.append(pred_index)
             pred_probs.append(result[pred_index])
 
-            print(round(t1 - t0, 4), [round(prob, 3) for prob in result])
-
             # output if last 10 frames are all same prediction
-            unique = np.unique(predictions[-10:])
+            unique = np.unique(predictions[-unique_limit:])
 
             current_gesture = "idle"
 
             if len(unique) == 1 and unique[0] == pred_index:
-                if np.all(prob > threshold for prob in pred_probs[-10:]):
+                if np.all(prob > threshold for prob in pred_probs[-unique_limit:]):
                     current_gesture = gestures[pred_index]
 
             if len(sentence) > 0:
@@ -319,5 +317,5 @@ if __name__ == '__main__':
     # live_mediapipe()
     # live_test(gestures, TfModel())
     # live_test(gestures, OpenVinoModel())
-    # live_test(gestures, OnnxModel())
-    long_test(gestures, OnnxModel())
+    # live_test(gestures, OnnxModel(), unique_limit=20, threshold=0.5)
+    long_test(gestures, OnnxModel(), unique_limit=20, threshold=0.5)
