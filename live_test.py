@@ -52,9 +52,9 @@ class TfModel(Model):
 
 
 class OnnxModel(Model):
-    def __init__(self):
+    def __init__(self, path):
         super().__init__()
-        self.model = "gesture_recognition_lstm.onnx"
+        self.model = path
 
         self.session = onnxruntime.InferenceSession(self.model, None)
 
@@ -269,7 +269,7 @@ def long_test(gestures, model, unique_limit=15, threshold=0.5):
     sequence = []
     predictions = []
     pred_probs = []
-    sentence = []
+    command_text = []
 
     prev_gesture = ""
 
@@ -300,22 +300,23 @@ def long_test(gestures, model, unique_limit=15, threshold=0.5):
                 if np.all(prob > threshold for prob in pred_probs[-unique_limit:]):
                     current_gesture = gestures[pred_index]
 
-            if len(sentence) > 0:
-                if current_gesture != sentence[-1]:
-                    sentence.append(current_gesture)
+            if len(command_text) > 0:
+                if current_gesture != command_text[-1]:
+                    command_text.append(current_gesture)
             else:
-                sentence.append(current_gesture)
+                command_text.append(current_gesture)
 
             prev_gesture = current_gesture
 
-    print(sentence)
+    print(list(filter(lambda x: x != "idle", command_text)), command_text)
 
 
 if __name__ == '__main__':
     # gestures = ["play", "pause", "forward", "back", "idle"]
     gestures = ["play", "pause", "forward", "back", "idle", "vol"]
+    onnx_path = "gesture_recognition_lstm_2p95.onnx"
     # live_mediapipe()
     # live_test(gestures, TfModel())
     # live_test(gestures, OpenVinoModel())
-    # live_test(gestures, OnnxModel(), unique_limit=20, threshold=0.5)
-    long_test(gestures, OnnxModel(), unique_limit=20, threshold=0.5)
+    # live_test(gestures, OnnxModel(onnx_path), unique_limit=20, threshold=0.5)
+    long_test(gestures, OnnxModel(onnx_path), unique_limit=23, threshold=0.5)
