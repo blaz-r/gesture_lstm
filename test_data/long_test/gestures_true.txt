@@ -1,0 +1,1 @@
+idle,play,idle,forward,idle,vol,idle,pause,idle,play,idle,back,idle,vol,idle,pause,idle
