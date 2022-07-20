@@ -129,13 +129,14 @@ def landmarks_read_test(directory_path):
         print("Successfully read")
 
 
-def prepare_data(path, gestures, gestures_onehot_dict):
+def prepare_data(path, gestures, gestures_onehot_dict, train_labels):
     """
     Prepare landmark data for training
 
     :param path: path to directory with subdirectories containing landmarks
     :param gestures: list of gestures, in order which model predicts them
     :param gestures_onehot_dict: dictionary mapping gesture to prediction output
+    :param train_labels: array containing id of people performing gestures to be included in trianing
     :return: sequences (X), results (y)
     """
     sequences = []
@@ -144,6 +145,10 @@ def prepare_data(path, gestures, gestures_onehot_dict):
         gesture_path = f"{path}/{gesture}"
         result = gestures_onehot_dict[gesture]
         for file in os.listdir(gesture_path):
+            # skip files that are from person that shouldn't be included in training
+            if file.split("_")[1] not in train_labels:
+                continue
+
             file_path = f"{gesture_path}/{file}"
             landmarks = np.load(file_path)
 
@@ -173,26 +178,27 @@ def make_model(outputs=6):
     return model
 
 
-def train_lstm(gestures, gestures_onehot_dict):
+def train_lstm(gestures, gestures_onehot_dict, train_labels=["0", "1"]):
     """
     Train model from saved landmarks
 
     :param gestures: list of gestures, in order which model predicts them
     :param gestures_onehot_dict: dictionary mapping gesture to prediction output
+    :param train_labels: array containing id of persons performing gestures to be included in trianing
     :return:
     """
 
     # train on CPU since it's faster for this case
     os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
-    X, y = prepare_data("gesture_landmarks", gestures, gestures_onehot_dict)
+    X, y = prepare_data("gesture_landmarks", gestures, gestures_onehot_dict, train_labels)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
     model = make_model(len(y[0]))
 
     model.compile(optimizer="Adam", loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
-    model.fit(X_train, y_train, epochs=200)
+    model.fit(X_train, y_train, epochs=300)
 
     model.summary()
 
@@ -200,7 +206,7 @@ def train_lstm(gestures, gestures_onehot_dict):
     y_true = np.argmax(y_test, axis=1).tolist()
     y_hat = np.argmax(y_hat, axis=1).tolist()
 
-    print("AC on test data", accuracy_score(y_true, y_hat))
+    print("AC on validation data", accuracy_score(y_true, y_hat))
 
     MODEL_DIR = "gesture_recognition_lstm"
     tf.saved_model.save(model, MODEL_DIR)
@@ -210,7 +216,7 @@ def train_lstm(gestures, gestures_onehot_dict):
     return model
 
 
-def test_model(path, gestures, gestures_onehot_dict):
+def test_model(model_path, path, gestures, gestures_onehot_dict):
     """
     :param path: path to directory with subdirectories containing landmarks
     :param gestures: list of gestures, in order which model predicts them
@@ -218,10 +224,10 @@ def test_model(path, gestures, gestures_onehot_dict):
 
     :return:
     """
-    X_test, y_test = prepare_data(path, gestures, gestures_onehot_dict)
+    X_test, y_test = prepare_data(path, gestures, gestures_onehot_dict, ["1"])
 
     model = make_model(6)
-    model.load_weights("gestures_2people_95.h5")
+    model.load_weights(model_path)
 
     y_hat = model.predict(X_test)
     y_true = np.argmax(y_test, axis=1).tolist()
@@ -236,6 +242,41 @@ def test_model(path, gestures, gestures_onehot_dict):
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=gestures)
     disp.plot()
     plt.show()
+
+
+def run_test_data(path, gestures):
+    # train on CPU since it's faster for this case
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+
+    model = make_model(6)
+    model.load_weights("gestures_2people_95.h5")
+
+    y_true = []
+    y_hat = []
+
+    total_time_ns = 0
+
+    for g_index, gesture in enumerate(gestures):
+        gesture_path = f"{path}/{gesture}"
+        for file in os.listdir(gesture_path):
+            file_path = f"{gesture_path}/{file}"
+            landmarks = np.load(file_path)
+
+            y_true.append(g_index)
+
+            data = np.expand_dims(landmarks, axis=0)
+
+            t0 = time.time_ns()
+            result = model.predict(data, verbose=0)
+            t1 = time.time_ns()
+
+            total_time_ns += t1 - t0
+
+            y_hat.append(np.argmax(result[0]))
+
+    print("AC on test data", accuracy_score(y_true, y_hat))
+
+    return total_time_ns / (10 ** 9)
 
 
 def test_on_landmarks():
@@ -280,6 +321,15 @@ def process_landmarks():
     # prepare_data("gesture_landmarks")
 
 
+def avg_time(gestures):
+    time = 0
+
+    for i in range(10):
+        time += run_test_data("test_data/test/gesture_landmarks", gestures)
+
+    print("Average execution time in seconds: ", time / 10)
+
+
 def main():
     gestures = ["play", "pause", "forward", "back", "idle", "vol"]
 
@@ -292,10 +342,12 @@ def main():
     #                         "back": [0, 0, 0, 1, 0],
     #                         "idle": [0, 0, 0, 0, 1]}
 
-    # train_lstm(gestures, gestures_onehot_dict)
+    # train_lstm(gestures, gestures_onehot_dict, train_labels=["0"])
     # save_model()
     # check_weights()
-    test_model("test_data/test/gesture_landmarks", gestures, gestures_onehot_dict)
+    # test_model("gestures.h5", "test_data/test/gesture_landmarks", gestures, gestures_onehot_dict)
+    avg_time(gestures)
+
     # test_on_landmarks()
 
 
