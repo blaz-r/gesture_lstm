@@ -50,7 +50,7 @@ def view():
 
 def cap_video():
     """
-    View video directly from camera
+    Capture video from camera and save it to file
 
     :return: None
     """
@@ -129,6 +129,14 @@ def capture_test():
 
 
 def handle_mediapipe(image, hands):
+    """
+    Handle data from mediapipe and draw on image
+
+    :param image: rgb image from camera
+    :param hands: mediapipe Hands object
+    :return: result from mediapipe
+    """
+
     # To improve performance, optionally mark the image as not writeable to
     # pass by reference.
     image.flags.writeable = False
@@ -266,9 +274,9 @@ if __name__ == "__main__":
     view()
     # cap_video()
     # capture_test()
-    name = "vol"
-    lm_path = f"test_data/test/gesture_landmarks/{name}"
-    video_path = f"test_data/test/gesture_videos/{name}"
-    filename = f"{name}_1"
-    capture(video_path, lm_path, filename, capture_num=20)
+    name = "idle"
+    lm_path = f"gesture_landmarks/{name}"
+    video_path = f"gesture_videos/{name}"
+    filename = f"a{name}_2"
+    capture(video_path, lm_path, filename, capture_num=45)
     # read_test("gesture_videos/play/play_capture1.mp4")

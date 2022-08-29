@@ -66,7 +66,7 @@ def create_pipeline():
     rgb_cam.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
     rgb_cam.setBoardSocket(dai.CameraBoardSocket.RGB)
     rgb_cam.setInterleaved(False)
-    rgb_cam.setFps(36)
+    rgb_cam.setFps(30)
     rgb_cam.setIspScale(scale_nd[0], scale_nd[1])
     rgb_cam.setVideoSize(img_w, img_h)
     rgb_cam.setPreviewSize(img_w, img_h)
