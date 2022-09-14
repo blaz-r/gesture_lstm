@@ -1,10 +1,6 @@
-import onnxruntime
-import tensorflow.python.keras as keras
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Input
-from tensorflow.python.tools import freeze_graph
-from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, ConfusionMatrixDisplay
@@ -19,8 +15,7 @@ from pathlib import Path
 import re
 import time
 
-import depthai as dai
-from dai_utils import create_pipeline, find_isp_scale_params
+from dai_utils import find_isp_scale_params
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -325,7 +320,7 @@ def avg_time(gestures):
     time = 0
 
     for i in range(10):
-        time += run_test_data("test_data/test/gesture_landmarks", gestures)
+        time += run_test_data("../test_data/test/gesture_landmarks", gestures)
 
     print("Average execution time in seconds: ", time / 10)
 

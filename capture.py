@@ -1,4 +1,3 @@
-import re
 import time
 import cv2
 import depthai as dai
@@ -6,7 +5,7 @@ import numpy as np
 
 from dai_utils import create_pipeline, find_isp_scale_params
 import mediapipe as mp
-from train_model import extract_landmarks
+from models.train_model import extract_landmarks
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles

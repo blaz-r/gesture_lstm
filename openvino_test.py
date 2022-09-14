@@ -6,7 +6,8 @@ import os
 
 iecore = IECore()
 
-network = iecore.read_network(model="gesture_recognition_lstm_2p95.xml", weights="gesture_recognition_lstm_2p95.bin")
+network = iecore.read_network(model="models/gesture_recognition_lstm_3p94.xml",
+                              weights="models/gesture_recognition_lstm_3p94.bin")
 exec_net = iecore.load_network(network=network, device_name="CPU")
 input_blob = next(iter(network.input_info))
 
@@ -64,4 +65,4 @@ def avg_time():
 
 if __name__ == "__main__":
     # avg_time()
-    test_one()
+    run_test_data()

@@ -10,7 +10,7 @@ import cv2
 
 import pyautogui
 
-from train_model import extract_landmarks, make_model
+from models.train_model import extract_landmarks, make_model
 import time
 
 mp_drawing = mp.solutions.drawing_utils
@@ -41,11 +41,11 @@ class Model:
 
 
 class TfModel(Model):
-    def __init__(self):
+    def __init__(self, path):
         # load model architecture and weight
         super().__init__()
         self.model = make_model()
-        self.model.load_weights("gestures.h5")
+        self.model.load_weights(path)
 
     def predict(self, sequence):
         return self.model.predict(sequence)[0]
@@ -66,12 +66,13 @@ class OnnxModel(Model):
 
 
 class OpenVinoModel(Model):
-    def __init__(self):
+    def __init__(self, xml_path, bin_path):
         super().__init__()
         self.iecore = IECore()
 
         # load model architecture and weight
-        self.network = self.iecore.read_network(model="gesture_recognition_lstm.xml", weights="gesture_recognition_lstm.bin")
+        self.network = self.iecore.read_network(model=xml_path,
+                                                weights=bin_path)
         self.exec_net = self.iecore.load_network(network=self.network, device_name="CPU")
         self.input_blob = next(iter(self.network.input_info))
 
@@ -314,9 +315,12 @@ def long_test(gestures, model, unique_limit=15, threshold=0.5):
 if __name__ == '__main__':
     # gestures = ["play", "pause", "forward", "back", "idle"]
     gestures = ["play", "pause", "forward", "back", "idle", "vol"]
-    onnx_path = "gesture_recognition_lstm_2p95.onnx"
+    onnx_path = "models/gesture_recognition_lstm_3p94.onnx"
+    tf_path = "models/gestures_3p94.h5"
+    OV_xml = "models/gesture_recognition_lstm_3p94.xml"
+    OV_bin = "models/gesture_recognition_lstm_3p94.bin"
     # live_mediapipe()
-    # live_test(gestures, TfModel())
-    # live_test(gestures, OpenVinoModel())
-    # live_test(gestures, OnnxModel(onnx_path), unique_limit=20, threshold=0.5)
-    long_test(gestures, OnnxModel(onnx_path), unique_limit=23, threshold=0.5)
+    # live_test(gestures, TfModel(tf_path))
+    # live_test(gestures, OpenVinoModel(OV_xml, OV_bin))
+    live_test(gestures, OnnxModel(onnx_path), unique_limit=20, threshold=0.5)
+    #long_test(gestures, OnnxModel(onnx_path), unique_limit=20, threshold=0.5)

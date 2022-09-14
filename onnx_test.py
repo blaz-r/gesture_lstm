@@ -5,7 +5,7 @@ import os
 
 from sklearn.metrics import accuracy_score
 
-model = "gesture_recognition_lstm_2p95.onnx"
+model = "models/gesture_recognition_lstm_3p94.onnx"
 session = onnxruntime.InferenceSession(model, None)
 
 input_name = session.get_inputs()[0].name
@@ -67,4 +67,5 @@ def avg_time():
 
 
 if __name__ == "__main__":
-    avg_time()
+    #avg_time()
+    run_test_data()
